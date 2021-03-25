@@ -1,0 +1,33 @@
+#
+# Copyright 2018-2020 Pejman Ghorbanzade. All rights reserved.
+#
+
+name: Test JsClient
+
+on:
+  push:
+    branches:
+    - main
+    - development
+    paths:
+    - '.github/workflows/clients-js.yml'
+    - 'clients/js/**'
+    - 'config/flatbuffers/**'
+
+jobs:
+  test-native:
+    name: client-js-unittest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('clients/js/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            ${{ runner.os }}-
+      - run: yarn --cwd=clients/js install
+      - run: yarn --cwd=clients/js build
+      - run: yarn --cwd=clients/js test
