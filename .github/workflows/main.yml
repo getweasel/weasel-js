@@ -10,21 +10,27 @@ on:
       - main
       - 'feature/**'
 
+env:
+  CACHED_DEPENDENCY_PATHS: |
+    ${{ github.workspace }}/node_modules
+    ${{ github.workspace }}/packages/**/node_modules
+
 jobs:
   test-native:
     name: unittest-native
     runs-on: ubuntu-20.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
       - uses: actions/cache@v2
         with:
-          path: ~/.npm
+          path: ${{ env.CACHED_DEPENDENCY_PATHS }}
           key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-node-
             ${{ runner.os }}-
       - run: yarn install
-      - run: yarn run lerna run build
-      - run: yarn run lerna run lint
-      - run: yarn run lerna run test
+      - run: yarn build
+      - run: yarn lint
+      - run: yarn test
