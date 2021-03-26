@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "build": "lerna run --stream --concurrency 1 --sort build",
+    "clean": "lerna run --parallel clean && lerna clean --yes",
     "lint": "lerna run --parallel lint",
     "test": "lerna run --stream --concurrency 1 --sort test"
   },
