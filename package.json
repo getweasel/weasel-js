@@ -10,9 +10,9 @@
   "bugs": "https://github.com/getweasel/weasel-js/issues",
   "homepage": "https://getweasel.com",
   "keywords": [
+    "regression-testing",
     "snapshot-testing",
     "test-framework",
-    "regression-testing",
     "client-library"
   ],
   "author": {
