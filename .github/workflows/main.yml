@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - main
-      - development
       - 'feature/**'
 
 jobs:
@@ -26,5 +25,6 @@ jobs:
             ${{ runner.os }}-node-
             ${{ runner.os }}-
       - run: yarn install
-      - run: yarn build
-      - run: yarn test
+      - run: yarn run lerna run build
+      - run: yarn run lerna run lint
+      - run: yarn run lerna run test

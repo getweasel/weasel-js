@@ -23,17 +23,39 @@ export type ConfigurationFile = string
  *
  */
 export class Client {
+  private _parse_error: string | null = null
+  private _configured = false
+
+  /**
+   * @brief Configures the weasel client.
+   *
+   * @param options configuration parameters
+   */
   constructor(options: ClientOptions | ConfigurationFile) {
     if (typeof options === 'string') {
       return
     }
   }
+
+  /**
+   * @brief Checks if the client is configured to perform basic operations.
+   *
+   * @return true if weasel client is properly configured
+   */
   public is_configured(): boolean {
-    return false
+    return this._configured
   }
+
+  /**
+   * @brief Provides the most recent error, if any, encountered during
+   *        client configuration.
+   *
+   * @return short description of the most recent configuration error
+   */
   public configuration_error(): string | null {
-    return ''
+    return this._parse_error
   }
+
   public add_logger(): void {}
   public declare_testcase(name: string): void {}
   public forget_testcase(name: string): void {}
