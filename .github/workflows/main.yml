@@ -1,0 +1,30 @@
+#
+# Copyright 2018-2020 Pejman Ghorbanzade. All rights reserved.
+#
+
+name: weasel-js-main
+
+on:
+  push:
+    branches:
+      - main
+      - development
+      - 'feature/**'
+
+jobs:
+  test-native:
+    name: unittest-native
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            ${{ runner.os }}-
+      - run: yarn install
+      - run: yarn build
+      - run: yarn test

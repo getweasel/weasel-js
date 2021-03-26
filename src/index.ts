@@ -44,12 +44,12 @@ export class Client {
   public add_metric(key: string): void {}
   public start_timer(key: string): void {}
   public stop_timer(key: string): void {}
-  public save_binary(key: string): void {}
-  public save_json(key: string): void {}
-  public post(): boolean {
+  public async save_binary(key: string): Promise<void> {}
+  public async save_json(key: string): Promise<void> {}
+  public async post(): Promise<boolean> {
     return false
   }
-  public seal(): boolean {
+  public async seal(): Promise<boolean> {
     return false
   }
 }
