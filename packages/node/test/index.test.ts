@@ -2,11 +2,11 @@
  * Copyright 2018-2020 Pejman Ghorbanzade. All rights reserved.
  */
 
-import { Client } from '../src'
+import { NodeClient } from '../src/client';
 
-test('configure client', () => {
-  const client = new Client({
-    apiUrl: 'some-api-url'
-  })
-  expect(client.add_result('some-key', 'some-value'))
-})
+test('basic api', async () => {
+  const client = new NodeClient();
+  client.init({});
+  client.add_result('some-key', 'some-value');
+  expect(await client.post()).toBe(false);
+});
