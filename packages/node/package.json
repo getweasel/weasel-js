@@ -1,6 +1,6 @@
 {
   "name": "@getweasel/node",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Weasel Client Library for Node.js",
   "license": "Apache-2.0",
   "repository": "git://github.com:getweasel/weasel-js.git",
@@ -22,8 +22,7 @@
     "lib/**/*"
   ],
   "publishConfig": {
-    "access": "public",
-    "registry": "https://npm.pkg.github.com/"
+    "access": "public"
   },
   "dependencies": {
     "flatbuffers": "^1.12.0"
