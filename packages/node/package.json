@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Weasel Client Library for Node.js",
   "license": "Apache-2.0",
-  "repository": "git@github.com:getweasel/weasel-js.git",
+  "repository": "git://github.com:getweasel/weasel-js.git",
   "bugs": "https://github.com/getweasel/weasel-js/issues",
   "homepage": "https://getweasel.com",
   "keywords": [

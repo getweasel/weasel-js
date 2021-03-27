@@ -1,6 +1,6 @@
 {
   "private": true,
-  "version": "0.1.0",
+  "version": "0.0.0",
   "scripts": {
     "build": "lerna run --stream --concurrency 1 --sort build",
     "clean": "lerna run --parallel clean && lerna clean --yes",
