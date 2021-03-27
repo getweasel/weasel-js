@@ -1,6 +1,6 @@
 {
   "name": "@getweasel/node",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Weasel Client Library for Node.js",
   "license": "Apache-2.0",
   "repository": "git://github.com:getweasel/weasel-js.git",
