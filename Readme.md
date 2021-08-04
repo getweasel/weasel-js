@@ -55,9 +55,9 @@ And many more! Checkout a [recorded product demo][YouTube] to learn more.
 * If you are new to Touca, the best place to start is our
   [Quickstart Guide][docs-quickstart] on our documentation website.
 * For information on how to use this library, examples, and tutorials,
-  checkout our [C++ SDK Documentation][docs-js].
+  checkout our [JavaScript SDK Documentation][docs-js].
 * If you cannot wait to start writing your first test with Touca,
-  checkout our [C++ API Reference][docs-js-api].
+  checkout our [JavaScript API Reference][docs-js-api].
 
 ## 🙋 Ask for Help
 
