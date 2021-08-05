@@ -4,23 +4,27 @@
  *
  */
 export interface BaseOptions {
-  apiKey?: string;
-  apiUrl?: string;
-  version?: string;
+  api_key?: string;
+  api_url?: string;
+  concurrency?: boolean;
+  file?: string;
+  offline?: string;
   suite?: string;
   team?: string;
-  handshake?: boolean;
-  postTestcases?: number;
-  postMaxRetries?: number;
-  concurrencyMode?: 'all-threads' | 'per-thread';
+  version?: string;
 }
 
 /**
  *
  */
 export interface BaseClient<Options extends BaseOptions> {
-  init(options: Options): void;
-  testcase(slug: string): void;
+  configure(options: Options): void;
+  is_configured(): boolean;
+  configuration_error(): string;
+  get_testcases(): PromiseLike<string[]>;
+  declare_testcase(slug: string): void;
+  forget_testcase(slug: string): void;
   add_result(key: string, value: unknown): void;
-  post(timeout?: number): PromiseLike<boolean>;
+  post(): PromiseLike<boolean>;
+  seal(): PromiseLike<boolean>;
 }
