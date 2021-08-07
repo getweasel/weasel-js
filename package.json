@@ -4,6 +4,7 @@
   "scripts": {
     "build": "lerna run --stream --concurrency 1 --sort build",
     "clean": "lerna run --parallel clean && lerna clean --yes",
+    "docs": "lerna run --parallel docs",
     "lint": "lerna run --parallel lint",
     "test": "lerna run --stream --concurrency 1 --sort test"
   },

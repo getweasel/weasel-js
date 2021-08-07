@@ -8,7 +8,26 @@ import { Transport } from './transport';
  *
  */
 export interface NodeOptions extends BaseOptions {
-  debug?: boolean;
+  /**
+   * determines whether the scope of test case declaration is bound to
+   * the thread performing the declaration, or covers all other threads.
+   * Defaults to `True`.
+   *
+   * If set to `True`, when a thread calls {@link declare_testcase}, all
+   * other threads also have their most recent test case changed to the
+   * newly declared test case and any subsequent call to data capturing
+   * functions such as {@link add_result} will affect the newly declared
+   * test case.
+   */
+  concurrency?: boolean;
+
+  /**
+   * Path to a configuration file in JSON format with a
+   * top-level "touca" field that may list any number of configuration
+   * parameters for this function. When used alongside other parameters,
+   * those parameters would override values specified in the file.
+   */
+  file?: string;
 }
 
 /**
@@ -38,11 +57,11 @@ export class NodeClient implements BaseClient<NodeOptions> {
    * configuration. The code below shows the common pattern in which API URL
    * is given in long format (it includes the team slug and the suite slug)
    * and API Key as well as the version of the code under test are specified
-   * as environment variables ``TOUCA_API_KEY`` and ``TOUCA_TEST_VERSION``,
+   * as environment variables `TOUCA_API_KEY` and `TOUCA_TEST_VERSION`,
    * respectively:
    *
-   * ```
-   * touca.configure(api_url='https://api.touca.io/@/acme/students')
+   * ```js
+   * touca.configure({api_url: 'https://api.touca.io/@/acme/students'})
    * ```
    *
    * As long as the API Key and API URL to the Touca server are known to
@@ -56,7 +75,7 @@ export class NodeClient implements BaseClient<NodeOptions> {
    * preserves the configuration parameters specified in previous calls to
    * this function.
    *
-   * @return ``True`` if client is ready to capture data.
+   * @return `True` if client is ready to capture data.
    */
   public configure(options: NodeOptions): void {}
 
@@ -68,9 +87,9 @@ export class NodeClient implements BaseClient<NodeOptions> {
    * We recommend that you perform this check after client configuration and
    * before calling other functions of the library:
    *
-   * ```
+   * ```js
    * if (!touca.is_configured()) {
-   *   console.log(configuration_error());
+   *   console.log(touca.configuration_error());
    * }
    * ```
    *
@@ -78,13 +97,13 @@ export class NodeClient implements BaseClient<NodeOptions> {
    * test results and store them locally on the filesystem. A single call
    * to {@link configure} without any configuration parameters can help
    * us get to this state. However, if a subsequent call to {@link configure}
-   * sets the parameter ``api_url`` in short form without specifying
-   * parameters such as ``team``, ``suite`` and ``version``, the client
+   * sets the parameter `api_url` in short form without specifying
+   * parameters such as `team`, `suite` and `version`, the client
    * configuration is incomplete: We infer that the user intends to submit
    * results but the provided configuration parameters are not sufficient
    * to perform this operation.
    *
-   * @return ``True`` if the client is properly configured
+   * @return `True` if the client is properly configured
    * @see {@link configure}
    */
   public is_configured(): boolean {
@@ -121,21 +140,21 @@ export class NodeClient implements BaseClient<NodeOptions> {
    * Declares name of the test case to which all subsequent results will be
    * submitted until a new test case is declared.
    *
-   * If configuration parameter ``concurrency`` is set to ``"enabled"``, when
+   * If configuration parameter `concurrency` is set to `"enabled"`, when
    * a thread calls `declare_testcase` all other threads also have their most
    * recent testcase changed to the newly declared one. Otherwise, each
    * thread will submit to its own testcase.
    *
-   * @param slug slug of the testcase to be declared
+   * @param name name of the testcase to be declared
    */
-  public declare_testcase(slug: string): void {
+  public declare_testcase(name: string): void {
     if (!this._configured) {
       return;
     }
-    if (!this._cases.has(slug)) {
-      this._cases.set(slug, new Case(slug));
+    if (!this._cases.has(name)) {
+      this._cases.set(name, new Case(name));
     }
-    this._active_case = slug;
+    this._active_case = name;
   }
 
   /**
@@ -144,7 +163,7 @@ export class NodeClient implements BaseClient<NodeOptions> {
    * This information is removed from memory, such that switching back to
    * an already-declared or already-submitted test case would behave similar
    * to when that test case was first declared. This information is removed,
-   * for all threads, regardless of the configuration option ``concurrency``.
+   * for all threads, regardless of the configuration option `concurrency`.
    * Information already submitted to the server will not be removed from
    * the server.
    *
@@ -153,13 +172,15 @@ export class NodeClient implements BaseClient<NodeOptions> {
    * the client library is a concern or if there is a risk that a future
    * test case with a similar name may be executed.
    *
-   * @param slug slug of the testcase to be removed from memory
+   * @param name name of the testcase to be removed from memory
+   *
+   * @throws when called with the name of a test case that was never declared
    */
-  public forget_testcase(slug: string): void {
-    if (!this._cases.has(slug)) {
-      throw new Error(`test case ${slug} was never declared`);
+  public forget_testcase(name: string): void {
+    if (!this._cases.has(name)) {
+      throw new Error(`test case ${name} was never declared`);
     }
-    this._cases.delete(slug);
+    this._cases.delete(name);
   }
 
   /**
@@ -173,6 +194,54 @@ export class NodeClient implements BaseClient<NodeOptions> {
     if (this._active_case) {
       this._cases.get(this._active_case)?.add_result(key, value);
     }
+  }
+
+  public add_assertion(key: string, value: unknown): void {}
+  public add_array_element(key: string, value: unknown): void {}
+  public add_hit_count(key: string): void {}
+  public add_metric(key: string, milliseconds: number): void {}
+  public start_timer(key: string): void {}
+  public stop_timer(key: string): void {}
+
+  /**
+   * Stores test results and performance benchmarks in binary format
+   * in a file of specified path.
+   *
+   * Touca binary files can be submitted at a later time to the Touca
+   * server.
+   *
+   * We do not recommend as a general practice for regression test tools
+   * to locally store their test results. This feature may be helpful for
+   * special cases such as when regression test tools have to be run in
+   * environments that have no access to the Touca server (e.g. running
+   * with no network access).
+   *
+   * @param path path to file in which test results and performance
+   *             benchmarks should be stored.
+   * @param cases names of test cases  whose results should be stored.
+   *              If a set is not specified or is set as empty, all
+   *              test cases will be stored in the specified file.
+   */
+  public async save_binary(path: string, cases: string[]): Promise<void> {
+    return Promise.resolve();
+  }
+
+  /**
+   * Stores test results and performance benchmarks in JSON format
+   * in a file of specified path.
+   *
+   * This feature may be helpful during development of regression tests
+   * tools for quick inspection of the test results and performance metrics
+   * being captured.
+   *
+   * @param path path to file in which test results and performance
+   *             benchmarks should be stored.
+   * @param cases names of test cases  whose results should be stored.
+   *              If a set is not specified or is set as empty, all
+   *              test cases will be stored in the specified file.
+   */
+  public async save_json(path: string, cases: string[]): Promise<void> {
+    return Promise.resolve();
   }
 
   /**
@@ -215,7 +284,7 @@ export class NodeClient implements BaseClient<NodeOptions> {
    * @throws when called on the client that is not configured to communicate
    *         with the Touca server.
    *
-   * @returns a promise that is resolved when all test results are submitted.
+   * @returns a promise that is resolved when the version is sealed.
    */
   public async seal(): Promise<boolean> {
     if (!this._transport) {
