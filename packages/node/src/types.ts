@@ -22,10 +22,10 @@ export interface BaseOptions {
 
   /**
    * determines whether client should connect with the Touca server during
-   * the configuration. Defaults to `False` when `api_url` or `api_key` are
+   * the configuration. Defaults to `false` when `api_url` or `api_key` are
    * provided.
    */
-  offline?: string;
+  offline?: boolean;
 
   /**
    * slug of the suite on the Touca server that corresponds to your
@@ -57,9 +57,6 @@ export interface BaseClient<Options extends BaseOptions> {
   add_metric(key: string, milliseconds: number): void;
   start_timer(key: string): void;
   stop_timer(key: string): void;
-  // add_serializer
-  save_binary(path: string, cases: string[]): void;
-  save_json(path: string, cases: string[]): void;
   post(): PromiseLike<boolean>;
   seal(): PromiseLike<boolean>;
 }

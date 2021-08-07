@@ -1,34 +1,12 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
-import { BaseClient, BaseOptions } from './types';
 import { Case } from './case';
+import { NodeOptions, update_options } from './options';
 import { Transport } from './transport';
-
-/**
- *
- */
-export interface NodeOptions extends BaseOptions {
-  /**
-   * determines whether the scope of test case declaration is bound to
-   * the thread performing the declaration, or covers all other threads.
-   * Defaults to `True`.
-   *
-   * If set to `True`, when a thread calls {@link declare_testcase}, all
-   * other threads also have their most recent test case changed to the
-   * newly declared test case and any subsequent call to data capturing
-   * functions such as {@link add_result} will affect the newly declared
-   * test case.
-   */
-  concurrency?: boolean;
-
-  /**
-   * Path to a configuration file in JSON format with a
-   * top-level "touca" field that may list any number of configuration
-   * parameters for this function. When used alongside other parameters,
-   * those parameters would override values specified in the file.
-   */
-  file?: string;
-}
+import { TypeHandler } from './type_handler';
+import { BaseClient } from './types';
+import { mkdirSync, writeFileSync } from 'fs';
+import { dirname } from 'path';
 
 /**
  *
@@ -38,9 +16,60 @@ export class NodeClient implements BaseClient<NodeOptions> {
   private _configured = false;
   private _configuration_error = '';
   private _options: NodeOptions = {};
-  private _parse_error: string | null = null;
   private _active_case: string | null = null;
-  private _transport: Transport | null = null;
+  private _transport?: Transport;
+  private _type_handler = new TypeHandler();
+
+  /**
+   *
+   */
+  private _make_transport(): boolean {
+    const keys: (keyof NodeOptions)[] = [
+      'api_key',
+      'api_url',
+      'team',
+      'suite',
+      'version'
+    ];
+    if (this._options.offline === true) {
+      return false;
+    }
+    if (!keys.every((key) => key in this._options)) {
+      return false;
+    }
+    if (!this._transport) {
+      this._transport = new Transport(this._options);
+      return true;
+    }
+    const is_different = (k: keyof NodeOptions) =>
+      this._transport?.options[k] !== this._options[k];
+    if (keys.some(is_different)) {
+      this._transport.update_options(keys.filter(is_different));
+    }
+    return true;
+  }
+
+  /**
+   *
+   */
+  private _serialize(cases: Case[]): ArrayBufferView {
+    return new Uint16Array();
+  }
+
+  /**
+   *
+   */
+  private _prepare_save(path: string, cases: string[]): Case[] {
+    if (dirname(path).length !== 0) {
+      mkdirSync(dirname(path), { recursive: true });
+    }
+    if (cases.length !== 0) {
+      Array.from(this._cases.entries())
+        .filter((k) => cases.includes(k[0]))
+        .map((k) => k[1]);
+    }
+    return Array.from(this._cases.values());
+  }
 
   /**
    * Configures the Touca client. Must be called before declaring test cases
@@ -77,7 +106,20 @@ export class NodeClient implements BaseClient<NodeOptions> {
    *
    * @return `True` if client is ready to capture data.
    */
-  public configure(options: NodeOptions): void {}
+  public configure(options: NodeOptions): boolean {
+    this._configuration_error = '';
+    try {
+      update_options(this._options, options);
+      if (this._make_transport()) {
+        this._transport?.authenticate();
+      }
+    } catch (err) {
+      this._configuration_error = `Configuration failed: ${err}`;
+      return false;
+    }
+    this._configured = true;
+    return true;
+  }
 
   /**
    * Checks if previous call(s) to {@link configure} have set the right
@@ -192,7 +234,8 @@ export class NodeClient implements BaseClient<NodeOptions> {
    */
   public add_result(key: string, value: unknown): void {
     if (this._active_case) {
-      this._cases.get(this._active_case)?.add_result(key, value);
+      const touca_value = this._type_handler.transform(value);
+      this._cases.get(this._active_case)?.add_result(key, touca_value);
     }
   }
 
@@ -223,7 +266,9 @@ export class NodeClient implements BaseClient<NodeOptions> {
    *              test cases will be stored in the specified file.
    */
   public async save_binary(path: string, cases: string[]): Promise<void> {
-    return Promise.resolve();
+    const items = this._prepare_save(path, cases);
+    const content = this._serialize(items);
+    writeFileSync(path, content, { flag: 'w+' });
   }
 
   /**
@@ -241,7 +286,9 @@ export class NodeClient implements BaseClient<NodeOptions> {
    *              test cases will be stored in the specified file.
    */
   public async save_json(path: string, cases: string[]): Promise<void> {
-    return Promise.resolve();
+    const items = this._prepare_save(path, cases);
+    const content = JSON.stringify([items.map((item) => item.json())]);
+    writeFileSync(path, content, { flag: 'w+' });
   }
 
   /**

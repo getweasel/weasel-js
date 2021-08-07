@@ -11,4 +11,7 @@ export class Case {
   add_result(key: string, value: unknown): void {
     this._results.push({ key, value });
   }
+  json(): Record<string, unknown> {
+    return {};
+  }
 }
