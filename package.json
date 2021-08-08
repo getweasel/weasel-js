@@ -6,7 +6,8 @@
     "clean": "lerna run --parallel clean && lerna clean --yes",
     "docs": "typedoc",
     "lint": "lerna run --parallel lint",
-    "test": "lerna run --stream --concurrency 1 --sort test"
+    "test": "lerna run --stream --concurrency 1 --sort test",
+    "test:watch": "lerna run --stream --concurrency 1 --sort test:watch"
   },
   "workspaces": [
     "packages/node"

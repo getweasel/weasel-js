@@ -1,7 +1,7 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
 import { BaseOptions } from './types';
-import { readFileSync, accessSync, constants } from 'fs';
+import { readFileSync, statSync } from 'fs';
 
 /**
  *
@@ -36,10 +36,8 @@ function _apply_config_file(incoming: NodeOptions): void {
   if (!incoming.file) {
     return;
   }
-  try {
-    accessSync(incoming.file, constants.F_OK);
-  } catch (error) {
-    throw new Error('file not found');
+  if (!statSync(incoming.file, { throwIfNoEntry: false })?.isFile()) {
+    throw new Error('config file not found');
   }
   const content = readFileSync(incoming.file, { encoding: 'utf8' });
   const parsed = JSON.parse(content);
@@ -58,39 +56,54 @@ function _apply_config_file(incoming: NodeOptions): void {
  *
  */
 function _apply_arguments(existing: NodeOptions, incoming: NodeOptions): void {
-  //   for params, validate, transform in [
-  //     (
-  //         ["team", "suite", "version", "api_key", "api_url"],
-  //         lambda x: isinstance(x, str),
-  //         lambda x: x,
-  //     ),
-  //     (["offline", "concurrency"], lambda x: isinstance(x, bool), lambda x: x),
-  // ]:
-  //     for param in params:
-  //         if param not in incoming:
-  //             continue
-  //         value = incoming.get(param)
-  //         if not validate(value):
-  //             raise ValueError(f"parameter {param} has unexpected type")
-  //         existing[param] = transform(value)
+  type Param = NodeOptions[keyof NodeOptions];
+  const inputs: {
+    params: (keyof NodeOptions)[];
+    validate: (x: Param) => boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    transform: (x: Param) => any;
+  }[] = [
+    {
+      params: ['team', 'suite', 'version', 'api_key', 'api_url'],
+      validate: (x) => typeof x === 'string',
+      transform: (x) => x
+    },
+    {
+      params: ['offline', 'concurrency'],
+      validate: (x) => typeof x === 'boolean',
+      transform: (x) => x
+    }
+  ];
+  for (const input of inputs) {
+    for (const param of input.params) {
+      if (!(param in incoming)) {
+        continue;
+      }
+      const value = incoming[param];
+      if (!input.validate(value)) {
+        throw new Error(`parameter "${param}" has unexpected type`);
+      }
+      existing[param] = input.transform(value);
+    }
+  }
 }
 
 /**
  *
  */
 function _apply_environment_variables(existing: NodeOptions): void {
-  // const options: Record<string, keyof NodeOptions> = {
-  //   TOUCA_API_KEY: 'api_key',
-  //   TOUCA_API_URL: 'api_url',
-  //   TOUCA_TEST_VERSION: 'version'
-  // };
-  // for (const env in options) {
-  //   const value = process.env[env];
-  //   if (value !== undefined) {
-  //     const key: keyof NodeOptions = options[env];
-  //     // existing[key] = value;
-  //   }
-  // }
+  const options: Record<string, 'api_key' | 'api_url' | 'version'> = {
+    TOUCA_API_KEY: 'api_key',
+    TOUCA_API_URL: 'api_url',
+    TOUCA_TEST_VERSION: 'version'
+  };
+  for (const env in options) {
+    const value = process.env[env];
+    if (value) {
+      const key = options[env];
+      existing[key] = value;
+    }
+  }
 }
 
 /**
@@ -100,20 +113,38 @@ function _reformat_parameters(existing: NodeOptions): void {
   if (!existing.concurrency) {
     existing.concurrency = true;
   }
-  if (!existing.api_url) {
+  const input_url = existing.api_url;
+  if (!input_url) {
     return;
   }
-  // const url = new URL(existing.api_url);
-  // url = urlparse(api_url)
-  // urlpath = [k.strip("/") for k in url.path.split("/@/")]
-  // existing["api_url"] = f"{url.scheme}://{url.netloc}/{urlpath[0]}".rstrip("/")
-  // if len(urlpath) == 1:
-  //     return
-  // slugs = [k for k in urlpath[1].split("/") if k]
-  // for k, v in list(zip(["team", "suite", "version"], slugs)):
-  //     if k in existing and existing.get(k) != v:
-  //         raise ValueError(f"option {k} is in conflict with provided api_url")
-  //     existing[k] = v
+  const has_protocol = ['http', 'https'].some((v) => input_url.startsWith(v));
+  const url = new URL(has_protocol ? input_url : 'https://' + input_url);
+  const pathname = url.pathname
+    .split('/@/')
+    .map((v) => v.split('/').filter((v) => v.length !== 0));
+  url.pathname = pathname[0].join('/');
+  existing.api_url = url.toString();
+
+  if (pathname.length === 1) {
+    return;
+  }
+
+  type Slugs = Pick<NodeOptions, 'team' | 'suite' | 'version'>;
+  const slugs: Slugs = {
+    team: pathname[1][0],
+    suite: pathname[1][1],
+    version: pathname[1][2]
+  };
+  for (const slug in slugs) {
+    const key = slug as keyof Slugs;
+    if (!slugs[key]) {
+      continue;
+    }
+    if (existing[key] !== undefined && existing[key] !== slugs[key]) {
+      throw new Error(`option "${key}" is in conflict with provided api_url`);
+    }
+    existing[key] = slugs[key];
+  }
 }
 
 /**
