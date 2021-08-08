@@ -52,8 +52,8 @@ export class NodeClient implements BaseClient<NodeOptions> {
   /**
    *
    */
-  private _serialize(cases: Case[]): ArrayBufferView {
-    return new Uint16Array();
+  private _serialize(cases: Case[]): string {
+    return '';
   }
 
   /**
@@ -313,8 +313,8 @@ export class NodeClient implements BaseClient<NodeOptions> {
     if (!this._transport.has_token()) {
       throw new Error('client not authenticated');
     }
-    // @TODO
-    return this._transport.post('');
+    const content = this._serialize(Array.from(this._cases.values()));
+    return this._transport.post(content);
   }
 
   /**

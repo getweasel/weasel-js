@@ -5,6 +5,9 @@ type Result = {
   value: unknown;
 };
 
+/**
+ *
+ */
 export class Case {
   private _results: Result[] = [];
   constructor(private readonly slug: string) {}
