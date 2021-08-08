@@ -163,7 +163,9 @@ function _validate_options(existing: NodeOptions): void {
   const values = key_status.map((v) => v[1]);
   if (values.some(Boolean) && !values.every(Boolean)) {
     const keys = key_status.filter((v) => v[1] === false).map((v) => v[0]);
-    throw new Error(`missing required option(s) ${keys.join(',')}`);
+    throw new Error(
+      `missing required option(s) ${keys.map((k) => `"${k}"`).join(', ')}`
+    );
   }
 }
 

@@ -111,7 +111,7 @@ describe('when api url is given', () => {
       api_url: 'https://127.0.0.1/api'
     };
     expect(() => update_options(existing, incoming)).toThrowError(
-      'missing required option(s) team,suite,version'
+      'missing required option(s) "team", "suite", "version"'
     );
     expect(existing.api_url).toEqual('https://127.0.0.1/api');
   });
