@@ -1,7 +1,7 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
 import { BaseOptions } from './types';
-import { readFileSync, statSync } from 'fs';
+import { readFileSync, accessSync, constants } from 'fs';
 
 /**
  *
@@ -36,7 +36,9 @@ function _apply_config_file(incoming: NodeOptions): void {
   if (!incoming.file) {
     return;
   }
-  if (!statSync(incoming.file).isFile()) {
+  try {
+    accessSync(incoming.file, constants.F_OK);
+  } catch (error) {
     throw new Error('file not found');
   }
   const content = readFileSync(incoming.file, { encoding: 'utf8' });
@@ -77,18 +79,18 @@ function _apply_arguments(existing: NodeOptions, incoming: NodeOptions): void {
  *
  */
 function _apply_environment_variables(existing: NodeOptions): void {
-  const options: Record<string, keyof NodeOptions> = {
-    TOUCA_API_KEY: 'api_key',
-    TOUCA_API_URL: 'api_url',
-    TOUCA_TEST_VERSION: 'version'
-  };
-  for (const env in options) {
-    const value = process.env[env];
-    if (value !== undefined) {
-      const key: keyof NodeOptions = options[env];
-      // existing[key] = value;
-    }
-  }
+  // const options: Record<string, keyof NodeOptions> = {
+  //   TOUCA_API_KEY: 'api_key',
+  //   TOUCA_API_URL: 'api_url',
+  //   TOUCA_TEST_VERSION: 'version'
+  // };
+  // for (const env in options) {
+  //   const value = process.env[env];
+  //   if (value !== undefined) {
+  //     const key: keyof NodeOptions = options[env];
+  //     // existing[key] = value;
+  //   }
+  // }
 }
 
 /**
@@ -101,7 +103,7 @@ function _reformat_parameters(existing: NodeOptions): void {
   if (!existing.api_url) {
     return;
   }
-  const url = new URL(existing.api_url);
+  // const url = new URL(existing.api_url);
   // url = urlparse(api_url)
   // urlpath = [k.strip("/") for k in url.path.split("/@/")]
   // existing["api_url"] = f"{url.scheme}://{url.netloc}/{urlpath[0]}".rstrip("/")
