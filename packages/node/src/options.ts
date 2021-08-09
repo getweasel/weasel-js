@@ -5,7 +5,7 @@ import { readFileSync, statSync } from 'fs';
 /**
  *
  */
-export interface BaseOptions {
+export interface NodeOptions {
   /**
    * API Key issued by the Touca server that
    * identifies who is submitting the data. Since the value should be
@@ -40,12 +40,7 @@ export interface BaseOptions {
 
   /** version of your workflow under test. */
   version?: string;
-}
 
-/**
- *
- */
-export interface NodeOptions extends BaseOptions {
   /**
    * determines whether the scope of test case declaration is bound to
    * the thread performing the declaration, or covers all other threads.

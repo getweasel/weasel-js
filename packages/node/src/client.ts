@@ -1,7 +1,7 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
 import { Case } from './case';
-import { BaseOptions, NodeOptions, update_options } from './options';
+import { NodeOptions, update_options } from './options';
 import { Transport } from './transport';
 import { TypeHandler } from './types';
 import { mkdirSync, writeFileSync } from 'fs';
@@ -10,7 +10,7 @@ import { dirname } from 'path';
 /**
  *
  */
-interface BaseClient<Options extends BaseOptions> {
+interface BaseClient<Options> {
   configure(options: Options): void;
   is_configured(): boolean;
   configuration_error(): string;

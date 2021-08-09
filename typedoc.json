@@ -1,13 +1,21 @@
 {
   "name": "Touca SDK for JavaScript",
-  "entryPoints": ["packages"],
   "out": "./local/docs",
-  "readme": "Readme.md",
-  "includes": "./",
-  "exclude": ["**/lib/**/*", "**/test/**/*"],
+  "entryPoints": ["packages/node/src"],
+  "includes": ["packages/node"],
+  "exclude": [
+    "**/*.js",
+    "**/coverage/**/*",
+    "**/dist/**/*",
+    "**/node_modules/**/*",
+    "**/test/**/*"
+  ],
   "disableSources": true,
-  "includeVersion": true,
   "excludeExternals": true,
   "excludePrivate": true,
-  "sort": ["visibility", "static-first", "source-order"]
+  "hideGenerator": true,
+  "includeVersion": true,
+  "readme": "Readme.md",
+  "sort": ["visibility", "static-first", "source-order"],
+  "theme": "default"
 }
