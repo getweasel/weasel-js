@@ -265,9 +265,118 @@ export class NodeClient implements BaseClient<NodeOptions> {
     }
   }
 
-  public add_assertion(key: string, value: unknown): void {}
-  public add_array_element(key: string, value: unknown): void {}
-  public add_hit_count(key: string): void {}
+  /**
+   * Logs a given value as an assertion for the declared test case
+   * and associates it with the specified key.
+   *
+   * @param key name to be associated with the logged test result
+   * @param value value to be logged as a test result
+   */
+  public add_assertion(key: string, value: unknown): void {
+    if (this._active_case) {
+      const touca_value = this._type_handler.transform(value);
+      this._cases.get(this._active_case)?.add_assertion(key, touca_value);
+    }
+  }
+
+  /**
+   * Adds a given value to a list of results for the declared
+   * test case which is associated with the specified key.
+
+   * Could be considered as a helper utility function.
+   * This method is particularly helpful to log a list of items as they
+   * are found:
+   *
+   * ```js
+   *  for (const number of numbers) {
+   *    if (is_prime(number)) {
+   *      touca.add_array_element("prime numbers", number);
+   *      touca.add_hit_count("number of primes");
+   *    }
+   *  }
+   * ```
+   *
+   * This pattern can be considered as a syntactic sugar for the following
+   * alternative:
+   *
+   * ```js
+   *  const primes = [];
+   *  for (const number of numbers) {
+   *    if (is_prime(number)) {
+   *      primes.push(number);
+   *    }
+   *  }
+   *  if (primes.length !== 0) {
+   *    touca.add_result("prime numbers", primes);
+   *    touca.add_result("number of primes", primes.length);
+   *  }
+   * ```
+   *
+   * The items added to the list are not required to be of the same type.
+   * The following code is acceptable:
+   *
+   * ```js
+   * touca.add_result("prime numbers", 42);
+   * touca.add_result("prime numbers", "forty three");
+   * ```
+   *
+   * @throws if specified key is already associated with a test result which
+   *         was not iterable
+   * @param key name to be associated with the logged test result
+   * @param value element to be appended to the array
+   * @see {@link add_result}
+   */
+  public add_array_element(key: string, value: unknown): void {
+    if (this._active_case) {
+      const touca_value = this._type_handler.transform(value);
+      this._cases.get(this._active_case)?.add_array_element(key, touca_value);
+    }
+  }
+
+  /**
+   * Increments value of key every time it is executed.
+   * creates the key with initial value of one if it does not exist.
+   *
+   * Could be considered as a helper utility function.
+   * This method is particularly helpful to track variables whose values
+   * are determined in loops with indeterminate execution cycles:
+   *
+   * ```js
+   *  for (const number of numbers) {
+   *    if (is_prime(number)) {
+   *      touca.add_array_element("prime numbers", number);
+   *      touca.add_hit_count("number of primes");
+   *    }
+   *  }
+   * ```
+   *
+   * This pattern can be considered as a syntactic sugar for the following
+   * alternative:
+   *
+   * ```js
+   *  const primes = []
+   *  for (const number of numbers) {
+   *    if (is_prime(number)) {
+   *      primes.push(number);
+   *    }
+   *  }
+   *  if (primes.length !== 0) {
+   *    touca.add_result("prime numbers", primes);
+   *    touca.add_result("number of primes", primes.length);
+   *  }
+   * ```
+   *
+   * @throws if specified key is already associated with a test result
+   *         which was not an integer
+   *
+   * @param key name to be associated with the logged test result
+   * @see {@link add_result}
+   */
+  public add_hit_count(key: string): void {
+    if (this._active_case) {
+      this._cases.get(this._active_case)?.add_hit_count(key);
+    }
+  }
 
   /**
    * Adds an already obtained measurements to the list of captured
@@ -312,6 +421,9 @@ export class NodeClient implements BaseClient<NodeOptions> {
     }
   }
 
+  /**
+   * @TODO
+   */
   public async scoped_timer(key: string, callback: () => void): Promise<void> {}
 
   /**

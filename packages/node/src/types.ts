@@ -4,7 +4,7 @@
  *
  */
 export interface ToucaType {
-  json(): void;
+  json(): boolean | number | string;
   serialize(): void;
 }
 
@@ -13,8 +13,8 @@ export interface ToucaType {
  */
 class BoolType implements ToucaType {
   constructor(private readonly value: boolean) {}
-  public json(): string {
-    return String(this.value);
+  public json(): boolean {
+    return this.value;
   }
   public serialize() {
     return '';
@@ -25,9 +25,15 @@ class BoolType implements ToucaType {
  *
  */
 export class NumberType implements ToucaType {
-  constructor(private readonly value: number) {}
-  public json(): string {
-    return String(this.value);
+  private _value: number;
+  constructor(value: number) {
+    this._value = value;
+  }
+  public increment(): void {
+    this._value += 1;
+  }
+  public json(): number {
+    return this._value;
   }
   public serialize(): string {
     return '';
@@ -50,10 +56,16 @@ class StringType implements ToucaType {
 /**
  *
  */
-class VectorType implements ToucaType {
-  constructor(private readonly value: unknown[]) {}
+export class VectorType implements ToucaType {
+  private _value: ToucaType[];
+  constructor(value: ToucaType[] = []) {
+    this._value = value;
+  }
+  public add(value: ToucaType): void {
+    this._value.push(value);
+  }
   public json(): string {
-    return JSON.stringify(this.value);
+    return JSON.stringify(this._value.map((v) => v.json()));
   }
   public serialize(): string {
     return '';
@@ -92,7 +104,11 @@ export class TypeHandler {
       return this._primitives[typeof value](value);
     }
     if (Array.isArray(value)) {
-      return new VectorType(value as unknown[]);
+      const vec = new VectorType();
+      for (const v of value) {
+        vec.add(this.transform(v));
+      }
+      return vec;
     }
     return new ObjectType(value as Record<string, unknown>);
   }
