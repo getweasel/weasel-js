@@ -1,12 +1,32 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
 import { Case } from './case';
-import { NodeOptions, update_options } from './options';
+import { BaseOptions, NodeOptions, update_options } from './options';
 import { Transport } from './transport';
-import { TypeHandler } from './type_handler';
-import { BaseClient } from './types';
+import { TypeHandler } from './types';
 import { mkdirSync, writeFileSync } from 'fs';
 import { dirname } from 'path';
+
+/**
+ *
+ */
+interface BaseClient<Options extends BaseOptions> {
+  configure(options: Options): void;
+  is_configured(): boolean;
+  configuration_error(): string;
+  get_testcases(): PromiseLike<string[]>;
+  declare_testcase(slug: string): void;
+  forget_testcase(slug: string): void;
+  add_result(key: string, value: unknown): void;
+  add_assertion(key: string, value: unknown): void;
+  add_array_element(key: string, value: unknown): void;
+  add_hit_count(key: string): void;
+  add_metric(key: string, milliseconds: number): void;
+  start_timer(key: string): void;
+  stop_timer(key: string): void;
+  post(): PromiseLike<boolean>;
+  seal(): PromiseLike<boolean>;
+}
 
 /**
  *
@@ -194,7 +214,13 @@ export class NodeClient implements BaseClient<NodeOptions> {
       return;
     }
     if (!this._cases.has(name)) {
-      this._cases.set(name, new Case(name));
+      const testcase = new Case({
+        name,
+        team: this._options.team,
+        suite: this._options.suite,
+        version: this._options.version
+      });
+      this._cases.set(name, testcase);
     }
     this._active_case = name;
   }
@@ -242,9 +268,51 @@ export class NodeClient implements BaseClient<NodeOptions> {
   public add_assertion(key: string, value: unknown): void {}
   public add_array_element(key: string, value: unknown): void {}
   public add_hit_count(key: string): void {}
-  public add_metric(key: string, milliseconds: number): void {}
-  public start_timer(key: string): void {}
-  public stop_timer(key: string): void {}
+
+  /**
+   * Adds an already obtained measurements to the list of captured
+   * performance benchmarks.
+   *
+   * Useful for logging a metric that is measured without using this SDK.
+   *
+   * @param key name to be associated with this performance benchmark
+   * @param milliseconds duration of this measurement in milliseconds
+   */
+  public add_metric(key: string, milliseconds: number): void {
+    if (this._active_case) {
+      this._cases.get(this._active_case)?.add_metric(key, milliseconds);
+    }
+  }
+
+  /**
+   * Starts timing an event with the specified name.
+   *
+   * Measurement of the event is only complete when function
+   * {@link stop_timer} is later called for the specified name.
+   *
+   * @param key name to be associated with the performance metric
+   */
+  public start_timer(key: string): void {
+    if (this._active_case) {
+      this._cases.get(this._active_case)?.start_timer(key);
+    }
+  }
+
+  /**
+   * Stops timing an event with the specified name.
+   *
+   * Expects function {@link stop_timer} to have been called previously
+   * with the specified name.
+   *
+   * @param key name to be associated with the performance metric
+   */
+  public stop_timer(key: string): void {
+    if (this._active_case) {
+      this._cases.get(this._active_case)?.stop_timer(key);
+    }
+  }
+
+  public async scoped_timer(key: string, callback: () => void): Promise<void> {}
 
   /**
    * Stores test results and performance benchmarks in binary format
@@ -265,7 +333,7 @@ export class NodeClient implements BaseClient<NodeOptions> {
    *              If a set is not specified or is set as empty, all
    *              test cases will be stored in the specified file.
    */
-  public async save_binary(path: string, cases: string[]): Promise<void> {
+  public async save_binary(path: string, cases: string[] = []): Promise<void> {
     const items = this._prepare_save(path, cases);
     const content = this._serialize(items);
     writeFileSync(path, content, { flag: 'w+' });
@@ -285,9 +353,9 @@ export class NodeClient implements BaseClient<NodeOptions> {
    *              If a set is not specified or is set as empty, all
    *              test cases will be stored in the specified file.
    */
-  public async save_json(path: string, cases: string[]): Promise<void> {
+  public async save_json(path: string, cases: string[] = []): Promise<void> {
     const items = this._prepare_save(path, cases);
-    const content = JSON.stringify([items.map((item) => item.json())]);
+    const content = JSON.stringify(items.map((item) => item.json()));
     writeFileSync(path, content, { flag: 'w+' });
   }
 

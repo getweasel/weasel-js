@@ -35,9 +35,9 @@ async function make_client(): Promise<NodeClient> {
   client.start_timer('small_time');
   await delay(10);
   client.stop_timer('small_time');
-  // await scoped_timer('scoped_timer', () => {
-  //   delay(10);
-  // });
+  await client.scoped_timer('scoped_timer', () => {
+    delay(10);
+  });
   return client;
 }
 
@@ -77,4 +77,5 @@ test('check missing options', () => {
 test('check loaded client', async () => {
   const client = await make_client();
   expect(client.is_configured()).toEqual(true);
+  await client.save_json('some_path', []);
 });

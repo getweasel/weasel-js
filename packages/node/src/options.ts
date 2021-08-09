@@ -1,7 +1,46 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
-import { BaseOptions } from './types';
 import { readFileSync, statSync } from 'fs';
+
+/**
+ *
+ */
+export interface BaseOptions {
+  /**
+   * API Key issued by the Touca server that
+   * identifies who is submitting the data. Since the value should be
+   * treated as a secret, we recommend that you pass it as an environment
+   * variable `TOUCA_API_KEY` instead.
+   */
+  api_key?: string;
+
+  /**
+   * URL to the Touca server API. Can be provided either in long
+   * format like `https://api.touca.io/@/myteam/mysuite/version` or in short
+   * format like `https://api.touca.io`. If the team, suite, or version are
+   * specified, you do not need to specify them separately.
+   */
+  api_url?: string;
+
+  /**
+   * determines whether client should connect with the Touca server during
+   * the configuration. Defaults to `false` when `api_url` or `api_key` are
+   * provided.
+   */
+  offline?: boolean;
+
+  /**
+   * slug of the suite on the Touca server that corresponds to your
+   * workflow under test.
+   */
+  suite?: string;
+
+  /** slug of your team on the Touca server. */
+  team?: string;
+
+  /** version of your workflow under test. */
+  version?: string;
+}
 
 /**
  *
