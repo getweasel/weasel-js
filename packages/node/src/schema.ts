@@ -32,16 +32,6 @@ export class TypeWrapper {
     return this;
   }
 
-  static getRootAsTypeWrapper(
-    bb: flatbuffers.ByteBuffer,
-    obj?: TypeWrapper
-  ): TypeWrapper {
-    return (obj || new TypeWrapper()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
-  }
-
   valueType(): Type {
     const offset = this.bb!.__offset(this.bb_pos, 4);
     return offset ? this.bb!.readUint8(this.bb_pos + offset) : Type.NONE;
@@ -84,13 +74,6 @@ export class Bool {
     return this;
   }
 
-  static getRootAsBool(bb: flatbuffers.ByteBuffer, obj?: Bool): Bool {
-    return (obj || new Bool()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
-  }
-
   value(): boolean {
     const offset = this.bb!.__offset(this.bb_pos, 4);
     return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
@@ -119,13 +102,6 @@ export class Int {
     this.bb_pos = i;
     this.bb = bb;
     return this;
-  }
-
-  static getRootAsInt(bb: flatbuffers.ByteBuffer, obj?: Int): Int {
-    return (obj || new Int()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
   }
 
   value(): flatbuffers.Long {
@@ -160,13 +136,6 @@ export class UInt {
     return this;
   }
 
-  static getRootAsUInt(bb: flatbuffers.ByteBuffer, obj?: UInt): UInt {
-    return (obj || new UInt()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
-  }
-
   value(): flatbuffers.Long {
     const offset = this.bb!.__offset(this.bb_pos, 4);
     return offset
@@ -196,13 +165,6 @@ export class Float {
     this.bb_pos = i;
     this.bb = bb;
     return this;
-  }
-
-  static getRootAsFloat(bb: flatbuffers.ByteBuffer, obj?: Float): Float {
-    return (obj || new Float()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
   }
 
   value(): number {
@@ -235,13 +197,6 @@ export class Double {
     return this;
   }
 
-  static getRootAsDouble(bb: flatbuffers.ByteBuffer, obj?: Double): Double {
-    return (obj || new Double()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
-  }
-
   value(): number {
     const offset = this.bb!.__offset(this.bb_pos, 4);
     return offset ? this.bb!.readFloat64(this.bb_pos + offset) : 0.0;
@@ -261,22 +216,15 @@ export class Double {
   }
 }
 
-export class String {
+export class T_String {
   bb: flatbuffers.ByteBuffer | null = null;
 
   bb_pos = 0;
 
-  __init(i: number, bb: flatbuffers.ByteBuffer): String {
+  __init(i: number, bb: flatbuffers.ByteBuffer): T_String {
     this.bb_pos = i;
     this.bb = bb;
     return this;
-  }
-
-  static getRootAsString(bb: flatbuffers.ByteBuffer, obj?: String): String {
-    return (obj || new String()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
   }
 
   value(): string | null;
@@ -314,16 +262,6 @@ export class ObjectMember {
     this.bb_pos = i;
     this.bb = bb;
     return this;
-  }
-
-  static getRootAsObjectMember(
-    bb: flatbuffers.ByteBuffer,
-    obj?: ObjectMember
-  ): ObjectMember {
-    return (obj || new ObjectMember()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
   }
 
   name(): string | null;
@@ -369,22 +307,15 @@ export class ObjectMember {
   }
 }
 
-export class Object {
+export class T_Object {
   bb: flatbuffers.ByteBuffer | null = null;
 
   bb_pos = 0;
 
-  __init(i: number, bb: flatbuffers.ByteBuffer): Object {
+  __init(i: number, bb: flatbuffers.ByteBuffer): T_Object {
     this.bb_pos = i;
     this.bb = bb;
     return this;
-  }
-
-  static getRootAsObject(bb: flatbuffers.ByteBuffer, obj?: Object): Object {
-    return (obj || new Object()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
   }
 
   key(): string | null;
@@ -466,13 +397,6 @@ export class Array {
     return this;
   }
 
-  static getRootAsArray(bb: flatbuffers.ByteBuffer, obj?: Array): Array {
-    return (obj || new Array()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
-  }
-
   values(index: number, obj?: TypeWrapper): TypeWrapper | null {
     const offset = this.bb!.__offset(this.bb_pos, 4);
     return offset
@@ -534,13 +458,6 @@ export class Result {
     this.bb_pos = i;
     this.bb = bb;
     return this;
-  }
-
-  static getRootAsResult(bb: flatbuffers.ByteBuffer, obj?: Result): Result {
-    return (obj || new Result()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
   }
 
   key(): string | null;
@@ -606,16 +523,6 @@ export class Assertion {
     return this;
   }
 
-  static getRootAsAssertion(
-    bb: flatbuffers.ByteBuffer,
-    obj?: Assertion
-  ): Assertion {
-    return (obj || new Assertion()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
-  }
-
   static startAssertion(builder: flatbuffers.Builder): void {
     builder.startObject(2);
   }
@@ -635,13 +542,6 @@ export class Metric {
     this.bb_pos = i;
     this.bb = bb;
     return this;
-  }
-
-  static getRootAsMetric(bb: flatbuffers.ByteBuffer, obj?: Metric): Metric {
-    return (obj || new Metric()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
   }
 
   key(): string | null;
@@ -695,13 +595,6 @@ export class Results {
     this.bb_pos = i;
     this.bb = bb;
     return this;
-  }
-
-  static getRootAsResults(bb: flatbuffers.ByteBuffer, obj?: Results): Results {
-    return (obj || new Results()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
   }
 
   entries(index: number, obj?: Result): Result | null {
@@ -767,16 +660,6 @@ export class Assertions {
     return this;
   }
 
-  static getRootAsAssertions(
-    bb: flatbuffers.ByteBuffer,
-    obj?: Assertions
-  ): Assertions {
-    return (obj || new Assertions()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
-  }
-
   static startAssertions(builder: flatbuffers.Builder): void {
     builder.startObject(1);
   }
@@ -796,13 +679,6 @@ export class Metrics {
     this.bb_pos = i;
     this.bb = bb;
     return this;
-  }
-
-  static getRootAsMetrics(bb: flatbuffers.ByteBuffer, obj?: Metrics): Metrics {
-    return (obj || new Metrics()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
   }
 
   entries(index: number, obj?: Metric): Metric | null {
@@ -866,16 +742,6 @@ export class Metadata {
     this.bb_pos = i;
     this.bb = bb;
     return this;
-  }
-
-  static getRootAsMetadata(
-    bb: flatbuffers.ByteBuffer,
-    obj?: Metadata
-  ): Metadata {
-    return (obj || new Metadata()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
   }
 
   testsuite(): string | null;
@@ -979,13 +845,6 @@ export class Message {
     return this;
   }
 
-  static getRootAsMessage(bb: flatbuffers.ByteBuffer, obj?: Message): Message {
-    return (obj || new Message()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
-  }
-
   metadata(obj?: Metadata): Metadata | null {
     const offset = this.bb!.__offset(this.bb_pos, 4);
     return offset
@@ -1058,16 +917,6 @@ export class MessageBuffer {
     return this;
   }
 
-  static getRootAsMessageBuffer(
-    bb: flatbuffers.ByteBuffer,
-    obj?: MessageBuffer
-  ): MessageBuffer {
-    return (obj || new MessageBuffer()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
-  }
-
   buf(index: number): number | null {
     const offset = this.bb!.__offset(this.bb_pos, 4);
     return offset
@@ -1132,16 +981,6 @@ export class Messages {
     this.bb_pos = i;
     this.bb = bb;
     return this;
-  }
-
-  static getRootAsMessages(
-    bb: flatbuffers.ByteBuffer,
-    obj?: Messages
-  ): Messages {
-    return (obj || new Messages()).__init(
-      bb.readInt32(bb.position()) + bb.position(),
-      bb
-    );
   }
 
   messages(index: number, obj?: MessageBuffer): MessageBuffer | null {
