@@ -84,7 +84,7 @@ export class NodeClient implements BaseClient<NodeOptions> {
       mkdirSync(dirname(path), { recursive: true });
     }
     if (cases.length !== 0) {
-      Array.from(this._cases.entries())
+      return Array.from(this._cases.entries())
         .filter((k) => cases.includes(k[0]))
         .map((k) => k[1]);
     }
@@ -246,7 +246,7 @@ export class NodeClient implements BaseClient<NodeOptions> {
    */
   public forget_testcase(name: string): void {
     if (!this._cases.has(name)) {
-      throw new Error(`test case ${name} was never declared`);
+      throw new Error(`test case "${name}" was never declared`);
     }
     this._cases.delete(name);
   }
