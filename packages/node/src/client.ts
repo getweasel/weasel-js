@@ -5,7 +5,7 @@ import { NodeOptions, update_options } from './options';
 import { Transport } from './transport';
 import * as schema from './schema';
 import { TypeHandler } from './types';
-import { flatbuffers } from 'flatbuffers';
+import { Builder } from 'flatbuffers';
 import { mkdirSync, writeFileSync } from 'fs';
 import { dirname } from 'path';
 
@@ -75,7 +75,7 @@ export class NodeClient implements BaseClient<NodeOptions> {
    *
    */
   private _serialize(cases: Case[]): Uint8Array {
-    const builder = new flatbuffers.Builder(1024);
+    const builder = new Builder(1024);
     const msg_buf = [];
     for (const item of cases.reverse()) {
       const content = item.serialize();

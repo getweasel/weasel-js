@@ -1,6 +1,6 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
-import { flatbuffers } from 'flatbuffers';
+import { Builder, createLong } from 'flatbuffers';
 import * as schema from './schema';
 
 /**
@@ -8,7 +8,7 @@ import * as schema from './schema';
  */
 export interface ToucaType {
   json(): boolean | number | string;
-  serialize(builder: flatbuffers.Builder): number;
+  serialize(builder: Builder): number;
 }
 
 /**
@@ -19,7 +19,7 @@ class BoolType implements ToucaType {
   public json(): boolean {
     return this.value;
   }
-  public serialize(builder: flatbuffers.Builder): number {
+  public serialize(builder: Builder): number {
     schema.Bool.startBool(builder);
     schema.Bool.addValue(builder, this.value);
     const value = schema.Bool.endBool(builder);
@@ -44,7 +44,7 @@ export class NumberType implements ToucaType {
   public json(): number {
     return this._value;
   }
-  public serialize(builder: flatbuffers.Builder): number {
+  public serialize(builder: Builder): number {
     schema.Double.startDouble(builder);
     schema.Double.addValue(builder, this._value);
     const value = schema.Double.endDouble(builder);
@@ -69,12 +69,9 @@ export class IntegerType implements ToucaType {
   public json(): number {
     return this._value;
   }
-  public serialize(builder: flatbuffers.Builder): number {
+  public serialize(builder: Builder): number {
     schema.Int.startInt(builder);
-    schema.Int.addValue(
-      builder,
-      flatbuffers.Long.create(this._value, this._value)
-    );
+    schema.Int.addValue(builder, createLong(this._value, this._value));
     const value = schema.Int.endInt(builder);
     schema.TypeWrapper.startTypeWrapper(builder);
     schema.TypeWrapper.addValue(builder, value);
@@ -91,7 +88,7 @@ class StringType implements ToucaType {
   public json(): string {
     return this.value;
   }
-  public serialize(builder: flatbuffers.Builder): number {
+  public serialize(builder: Builder): number {
     const content = builder.createString(this.value);
     schema.T_String.startString(builder);
     schema.T_String.addValue(builder, content);
@@ -117,7 +114,7 @@ export class VectorType implements ToucaType {
   public json(): string {
     return JSON.stringify(this._value.map((v) => v.json()));
   }
-  public serialize(builder: flatbuffers.Builder): number {
+  public serialize(builder: Builder): number {
     const items = this._value.map((v) => v.serialize(builder));
     const values = schema.Array.createValuesVector(builder, items);
     schema.Array.startArray(builder);
@@ -138,7 +135,7 @@ class ObjectType implements ToucaType {
   public json(): string {
     return JSON.stringify(this.value);
   }
-  public serialize(builder: flatbuffers.Builder): number {
+  public serialize(builder: Builder): number {
     return new BoolType(false).serialize(builder);
   }
 }

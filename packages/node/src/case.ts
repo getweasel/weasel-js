@@ -1,7 +1,7 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
 import { IntegerType, NumberType, ToucaType, VectorType } from './types';
-import { flatbuffers } from 'flatbuffers';
+import { Builder } from 'flatbuffers';
 import * as schema from './schema';
 
 enum ResultValueType {
@@ -186,7 +186,7 @@ export class Case {
       [ResultValueType.Check, schema.ResultType.Check],
       [ResultValueType.Assert, schema.ResultType.Assert]
     ]);
-    const builder = new flatbuffers.Builder(1024);
+    const builder = new Builder(1024);
 
     const meta = this._metadata();
     const metadata = new Map<string, number>(
