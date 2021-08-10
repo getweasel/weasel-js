@@ -227,17 +227,6 @@ export class Result {
   }
 }
 
-export class Assertion {
-  static startAssertion(builder: Builder): void {
-    builder.startObject(2);
-  }
-
-  static endAssertion(builder: Builder): Offset {
-    const offset = builder.endObject();
-    return offset;
-  }
-}
-
 export class Metric {
   static startMetric(builder: Builder): void {
     builder.startObject(2);
@@ -278,17 +267,6 @@ export class Results {
   }
 
   static endResults(builder: Builder): Offset {
-    const offset = builder.endObject();
-    return offset;
-  }
-}
-
-export class Assertions {
-  static startAssertions(builder: Builder): void {
-    builder.startObject(1);
-  }
-
-  static endAssertions(builder: Builder): Offset {
     const offset = builder.endObject();
     return offset;
   }
