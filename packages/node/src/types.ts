@@ -156,7 +156,25 @@ class ObjectType implements ToucaType {
   }
 
   public serialize(builder: Builder): number {
-    return new BoolType(false).serialize(builder);
+    const fbs_name = builder.createString(this.name);
+    const members = [];
+    for (const [k, v] of this._values) {
+      const member_key = builder.createString(k);
+      const member_value = v.serialize(builder);
+      schema.ObjectMember.startObjectMember(builder);
+      schema.ObjectMember.addName(builder, member_key);
+      schema.ObjectMember.addValue(builder, member_value);
+      members.push(schema.ObjectMember.endObjectMember(builder));
+    }
+    const fbs_members = schema.T_Object.createValuesVector(builder, members);
+    schema.T_Object.startObject(builder);
+    schema.T_Object.addKey(builder, fbs_name);
+    schema.T_Object.addValues(builder, fbs_members);
+    const value = schema.T_Object.endObject(builder);
+    schema.TypeWrapper.startTypeWrapper(builder);
+    schema.TypeWrapper.addValue(builder, value);
+    schema.TypeWrapper.addValueType(builder, value);
+    return schema.TypeWrapper.endTypeWrapper(builder);
   }
 }
 
