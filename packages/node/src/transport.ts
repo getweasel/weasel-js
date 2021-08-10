@@ -2,7 +2,7 @@
 
 import { NodeOptions } from './options';
 import { RequestOptions, request } from 'https';
-import { parse } from 'url';
+import { URL } from 'url';
 import { VERSION } from './version';
 
 interface Response {
@@ -108,19 +108,24 @@ export class Transport {
     if (!args.content_type) {
       args.content_type = 'application/json';
     }
-    const options = {
-      ...parse(this._options.api_url as string),
-      ...{
-        path: args.path,
-        method: args.method,
-        headers: {
-          Accept: 'application/json',
-          'Accept-Charset': 'utf-8',
-          'Content-Type': args.content_type,
-          'User-Agent': `touca-client-js/${VERSION}`
-        }
+    const url = new URL(this._options.api_url as string);
+    const options: RequestOptions = {
+      protocol: url.protocol,
+      host: url.host,
+      port: url.port,
+      hostname: url.hostname,
+      path: url.pathname + args.path,
+      method: args.method,
+      headers: {
+        Accept: 'application/json',
+        'Accept-Charset': 'utf-8',
+        'Content-Type': args.content_type,
+        'User-Agent': `touca-client-js/${VERSION}`
       }
     };
+    if (this._token && options.headers) {
+      options.headers['Authorization'] = `Bearer ${this._token}`;
+    }
     return this._request(options, args.body);
   }
 
