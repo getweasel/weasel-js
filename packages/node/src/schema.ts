@@ -68,35 +68,6 @@ export class Int {
   }
 }
 
-export class UInt {
-  static startUInt(builder: Builder): void {
-    builder.startObject(1);
-  }
-
-  static addValue(builder: Builder, value: Long): void {
-    builder.addFieldInt64(0, value, builder.createLong(0, 0));
-  }
-
-  static endUInt(builder: Builder): Offset {
-    const offset = builder.endObject();
-    return offset;
-  }
-}
-export class Float {
-  static startFloat(builder: Builder): void {
-    builder.startObject(1);
-  }
-
-  static addValue(builder: Builder, value: number): void {
-    builder.addFieldFloat32(0, value, 0.0);
-  }
-
-  static endFloat(builder: Builder): Offset {
-    const offset = builder.endObject();
-    return offset;
-  }
-}
-
 export class Double {
   static startDouble(builder: Builder): void {
     builder.startObject(1);
