@@ -167,10 +167,6 @@ export class T_Object {
     return builder.endVector();
   }
 
-  static startValuesVector(builder: Builder, numElems: number): void {
-    builder.startVector(4, numElems, 4);
-  }
-
   static endObject(builder: Builder): Offset {
     const offset = builder.endObject();
     return offset;
@@ -192,10 +188,6 @@ export class Array {
       builder.addOffset(data[i]);
     }
     return builder.endVector();
-  }
-
-  static startValuesVector(builder: Builder, numElems: number): void {
-    builder.startVector(4, numElems, 4);
   }
 
   static endArray(builder: Builder): Offset {
@@ -262,10 +254,6 @@ export class Results {
     return builder.endVector();
   }
 
-  static startEntriesVector(builder: Builder, numElems: number): void {
-    builder.startVector(4, numElems, 4);
-  }
-
   static endResults(builder: Builder): Offset {
     const offset = builder.endObject();
     return offset;
@@ -287,10 +275,6 @@ export class Metrics {
       builder.addOffset(data[i]);
     }
     return builder.endVector();
-  }
-
-  static startEntriesVector(builder: Builder, numElems: number): void {
-    builder.startVector(4, numElems, 4);
   }
 
   static endMetrics(builder: Builder): Offset {
@@ -373,10 +357,6 @@ export class MessageBuffer {
     return builder.endVector();
   }
 
-  static startBufVector(builder: Builder, numElems: number): void {
-    builder.startVector(1, numElems, 1);
-  }
-
   static endMessageBuffer(builder: Builder): Offset {
     const offset = builder.endObject();
     return offset;
@@ -398,10 +378,6 @@ export class Messages {
       builder.addOffset(data[i]);
     }
     return builder.endVector();
-  }
-
-  static startMessagesVector(builder: Builder, numElems: number): void {
-    builder.startVector(4, numElems, 4);
   }
 
   static endMessages(builder: Builder): Offset {
