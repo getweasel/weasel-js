@@ -45,7 +45,7 @@ export class Transport {
    *
    */
   constructor(options: NodeOptions) {
-    this._options = options;
+    this._options = { ...options };
     this._handshake();
   }
 
@@ -79,20 +79,10 @@ export class Transport {
         res.on('data', (chunk) => (body += chunk.toString()));
         res.on('error', reject);
         res.on('end', () => {
-          if (
-            res.statusCode &&
-            res.statusCode >= 200 &&
-            res.statusCode <= 299
-          ) {
-            resolve({
-              status: res.statusCode,
-              body: body
-            });
-          } else {
-            reject(
-              'Request failed. status: ' + res.statusCode + ', body: ' + body
-            );
+          if (!res.statusCode) {
+            return reject(new Error('HTTP request failed: ' + options.path));
           }
+          return resolve({ status: res.statusCode, body });
         });
       });
       req.on('error', reject);
@@ -132,12 +122,12 @@ export class Transport {
   /**
    *
    */
-  public update_options(options: string[]): void {
+  public update_options(options: NodeOptions): void {
     if (['api_key', 'api_url'].filter((k) => k in options).length !== 0) {
       this._token = undefined;
+      this._handshake();
     }
     this._options = { ...this._options, ...options };
-    this._handshake();
   }
 
   /**
@@ -152,7 +142,7 @@ export class Transport {
       path: '/client/signin',
       body: JSON.stringify({ key: this._options.api_key })
     });
-    if (response.status === 400) {
+    if (response.status === 401) {
       throw new Error('Authentication failed: API Key Invalid');
     }
     if (response.status !== 200) {
@@ -216,7 +206,7 @@ export class Transport {
    *
    */
   public has_token(): boolean {
-    return this._token?.length !== 0;
+    return this._token !== undefined;
   }
 
   /**

@@ -63,10 +63,12 @@ export class NodeClient implements BaseClient<NodeOptions> {
       this._transport = new Transport(this._options);
       return true;
     }
-    const is_different = (k: keyof NodeOptions) =>
-      this._transport?.options[k] !== this._options[k];
-    if (keys.some(is_different)) {
-      this._transport.update_options(keys.filter(is_different));
+    const diff = keys.filter(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      (k) => this._transport!.options[k] !== this._options[k]
+    );
+    if (diff.length !== 0) {
+      this._transport.update_options(this._options);
     }
     return true;
   }
