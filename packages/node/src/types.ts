@@ -158,7 +158,7 @@ class ObjectType implements ToucaType {
   public serialize(builder: Builder): number {
     const fbs_name = builder.createString(this.name);
     const members = [];
-    for (const [k, v] of this._values) {
+    for (const [k, v] of Array.from(this._values.entries()).reverse()) {
       const member_key = builder.createString(k);
       const member_value = v.serialize(builder);
       schema.ObjectMember.startObjectMember(builder);
