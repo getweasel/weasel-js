@@ -184,11 +184,7 @@ class ObjectType implements ToucaType {
 export class TypeHandler {
   private readonly _primitives: Record<string, (x: unknown) => ToucaType> = {
     boolean: (x) => new BoolType(x as boolean),
-    number: (x) => {
-      return Number.isInteger(x)
-        ? new IntegerType(x as number)
-        : new DecimalType(x as number);
-    },
+    number: (x) => new DecimalType(x as number),
     string: (x) => new StringType(x as string)
   };
   private _types = new Map<string, (arg: unknown) => Record<string, unknown>>();
