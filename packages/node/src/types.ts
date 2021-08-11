@@ -187,7 +187,9 @@ export class TypeHandler {
     number: (x) => new DecimalType(x as number),
     string: (x) => new StringType(x as string)
   };
-  private _types = new Map<string, (arg: unknown) => Record<string, unknown>>();
+  private _types = new Map<string, (arg: unknown) => Record<string, unknown>>([
+    ['Date', (x) => ({ v: (x as Date).toISOString() })]
+  ]);
 
   /**
    *

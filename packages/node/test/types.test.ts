@@ -12,6 +12,10 @@ class DateOfBirth {
 
 describe('basic operations', () => {
   const handler = new types.TypeHandler();
+  test('check date', () => {
+    const val = handler.transform(new Date(2021, 8, 11, 11, 29));
+    expect(val.json()).toEqual('{"v":"2021-09-11T16:29:00.000Z"}');
+  });
   test('check boolean type', () => {
     const val = handler.transform(true);
     expect(val.json()).toEqual(true);
