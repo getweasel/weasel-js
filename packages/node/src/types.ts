@@ -173,7 +173,7 @@ class ObjectType implements ToucaType {
     const value = schema.T_Object.endObject(builder);
     schema.TypeWrapper.startTypeWrapper(builder);
     schema.TypeWrapper.addValue(builder, value);
-    schema.TypeWrapper.addValueType(builder, value);
+    schema.TypeWrapper.addValueType(builder, schema.Type.Object);
     return schema.TypeWrapper.endTypeWrapper(builder);
   }
 }
