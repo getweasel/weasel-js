@@ -5,3 +5,4 @@ import { NodeClient } from './client';
 const client = new NodeClient();
 export { client as touca };
 export { VERSION } from './version';
+export { run, workflow } from './workflow';
