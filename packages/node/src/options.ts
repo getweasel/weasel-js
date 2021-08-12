@@ -124,6 +124,9 @@ function _apply_arguments(existing: NodeOptions, incoming: NodeOptions): void {
         continue;
       }
       const value = incoming[param];
+      if (value === undefined) {
+        continue;
+      }
       if (!input.validate(value)) {
         throw new Error(`parameter "${param}" has unexpected type`);
       }
