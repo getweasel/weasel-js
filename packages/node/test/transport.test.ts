@@ -1,7 +1,7 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
 import { NodeClient } from '../src/client';
-import nock from 'nock';
+import * as nock from 'nock';
 
 const config = {
   api_url: 'https://api.example.com/v1/@/some-team/some-suite',
