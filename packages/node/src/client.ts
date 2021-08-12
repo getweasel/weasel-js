@@ -1,13 +1,14 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
+import { Builder } from 'flatbuffers';
+import { mkdirSync, writeFileSync } from 'fs';
+import { dirname } from 'path';
 import { Case } from './case';
 import { NodeOptions, update_options } from './options';
 import { Transport } from './transport';
 import * as schema from './schema';
 import { TypeHandler } from './types';
-import { Builder } from 'flatbuffers';
-import { mkdirSync, writeFileSync } from 'fs';
-import { dirname } from 'path';
+import { Runner } from './runner';
 
 /**
  *
@@ -41,6 +42,7 @@ export class NodeClient implements BaseClient<NodeOptions> {
   private _active_case: string | null = null;
   private _transport?: Transport;
   private _type_handler = new TypeHandler();
+  private _runner = new Runner(this);
 
   /**
    *
@@ -539,5 +541,22 @@ export class NodeClient implements BaseClient<NodeOptions> {
       throw new Error('client not authenticated');
     }
     return this._transport.seal();
+  }
+
+  /**
+   *
+   */
+  public async run(): Promise<void> {
+    return await this._runner.run_workflows();
+  }
+
+  /**
+   *
+   */
+  public async workflow(
+    name: string,
+    callback: (testcase: string) => void
+  ): Promise<void> {
+    this._runner.add_workflow(name, callback);
   }
 }

@@ -1,7 +1,7 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
 /**
- * @file workflow
+ * @file runner
  *
  * Touca Test Framework for JavaScript is designed to make writing regression
  * test workflows easy and straightforward. The test framework abstracts away
@@ -29,13 +29,13 @@
  * workflows using the {@link touca.workflow} function.
  */
 
-import * as util from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
-import { NodeOptions, update_options } from './options';
-import { touca } from './index';
-import { VERSION } from './version';
+import * as util from 'util';
 import yargs from 'yargs';
+import { NodeClient } from './client';
+import { NodeOptions, update_options } from './options';
+import { VERSION } from './version';
 
 interface RunnerOptions extends NodeOptions {
   overwrite: boolean;
@@ -46,16 +46,6 @@ interface RunnerOptions extends NodeOptions {
   output_directory: string;
   log_level: 'debug' | 'info' | 'warn';
 }
-
-/**
- *
- */
-type Workflow = (testcase: string) => void;
-
-/**
- *
- */
-const workflows: Record<string, Workflow> = {};
 
 /**
  *
@@ -153,13 +143,6 @@ class Timer {
   public count(name: string) {
     return this._times[name];
   }
-}
-
-/**
- *
- */
-export function workflow(name: string, callback: Workflow): void {
-  workflows[name] = callback;
 }
 
 /**
@@ -263,184 +246,209 @@ function _parse_cli_options(args: string[]): RunnerOptions {
   };
 }
 
-async function _initialize(options: RunnerOptions): Promise<void> {
-  // Let the lower-level library consolidate the provided config options
-  // including applying environment variables and processing long-format
-  // api_url.
-  update_options(options, options);
-
-  // Check that team, suite and version are provided.
-  const missing = ['team', 'suite', 'version'].filter((v) => !(v in options));
-  if (missing.length !== 0) {
-    throw new ToucaError(ToucaErrorCode.MissingSlugs, [
-      missing.map((v) => `"${v}"`).join(', ')
-    ]);
-  }
-
-  // Create directory to write logs and test results into
-  const output_dir = path.join(
-    options.output_directory,
-    options.suite as string,
-    options.version as string
-  );
-  if (!fs.existsSync(output_dir)) {
-    fs.mkdirSync(output_dir, { recursive: true });
-  }
-
-  // Configure the lower-level Touca library
-  if (!(await touca.configure(options))) {
-    throw new Error(touca.configuration_error());
-  }
-
-  // Update list of test cases
-  await _update_testcase_list(options);
-}
-
-/**
- * Use provided config options to find the final list of test cases to use
- * for running the workflows. The following implementation assumes options
- * `--testcases` and `--testcase-file` are mutually exclusive.
- */
-async function _update_testcase_list(options: RunnerOptions): Promise<void> {
-  if (options.testcases) {
-    return;
-  }
-  if (options.testcase_file) {
-    const content = fs.readFileSync(options.testcase_file, {
-      encoding: 'utf-8'
-    });
-    options.testcases = content
-      .split('\n')
-      .filter((v) => v.length !== 0 && v.startsWith('#'));
-    return;
-  }
-  if (options.offline || ['api_key', 'api_url'].some((v) => !(v in options))) {
-    throw new ToucaError(ToucaErrorCode.NoCaseMissingRemote);
-  }
-  options.testcases = await touca.get_testcases();
-  if (options.testcases.length === 0) {
-    throw new ToucaError(ToucaErrorCode.NoCaseEmptyRemote);
-  }
-}
-
 /**
  *
  */
-function _skip(options: RunnerOptions, testcase: string): boolean {
-  const testcase_directory = path.join(
-    options.output_directory,
-    options.suite as string,
-    options.version as string,
-    testcase
-  );
-  if (options.save_binary) {
-    return fs.existsSync(path.join(testcase_directory, 'touca.bin'));
-  }
-  if (options.save_json) {
-    return fs.existsSync(path.join(testcase_directory, 'touca.json'));
-  }
-  return false;
-}
+export class Runner {
+  private _workflows: Record<string, (testcase: string) => void> = {};
 
-/**
- *
- */
-async function _run(args: string[]): Promise<void> {
-  if (workflows === {}) {
-    throw new ToucaError(ToucaErrorCode.MissingWorkflow);
+  /**
+   *
+   */
+  constructor(private readonly _client: NodeClient) {}
+
+  /**
+   *
+   */
+  public async add_workflow(
+    name: string,
+    workflow: (testcase: string) => void
+  ): Promise<void> {
+    this._workflows[name] = workflow;
   }
-  const options = _parse_cli_options(args);
-  await _initialize(options);
-  console.info(
-    `\nTouca Regression Test Framework\nSuite: ${options.suite}\nRevision: ${options.version}\n`
-  );
 
-  const offline = options.offline || !options.api_key || !options.api_url;
-  const timer = new Timer();
-  const stats = new Statistics();
-  timer.tic('__workflow__');
+  /**
+   *
+   */
+  public async run_workflows(): Promise<void> {
+    try {
+      await this._run_workflows(process.argv);
+    } catch (error) {
+      console.error(
+        `Touca encountered an error when executing this test:\n${error.message}`
+      );
+      process.exit(1);
+    }
+  }
 
-  for (const [index, testcase] of options.testcases.entries()) {
+  /**
+   *
+   */
+  private async _run_workflows(args: string[]): Promise<void> {
+    if (this._workflows === {}) {
+      throw new ToucaError(ToucaErrorCode.MissingWorkflow);
+    }
+    const options = _parse_cli_options(args);
+    await this._initialize(options);
+    console.info(
+      `\nTouca Regression Test Framework\nSuite: ${options.suite}\nRevision: ${options.version}\n`
+    );
+
+    const offline = options.offline || !options.api_key || !options.api_url;
+    const timer = new Timer();
+    const stats = new Statistics();
+    timer.tic('__workflow__');
+
+    for (const [index, testcase] of options.testcases.entries()) {
+      const testcase_directory = path.join(
+        options.output_directory,
+        options.suite as string,
+        options.version as string,
+        testcase
+      );
+
+      if (options.overwrite && this._skip(options, testcase)) {
+        const message = '';
+        console.info(message);
+        stats.inc('skip');
+        continue;
+      }
+
+      this._client.declare_testcase(testcase);
+      timer.tic(testcase);
+
+      const errors = [];
+      try {
+        for (const workflow_name in this._workflows) {
+          await this._workflows[workflow_name](testcase);
+        }
+      } catch (error) {
+        errors.push('message' in error ? error.message : 'unknown error');
+      }
+
+      timer.toc(testcase);
+      stats.inc(errors.length === 0 ? 'pass' : 'fail');
+
+      if (errors.length === 0 && options.save_binary) {
+        const filepath = path.join(testcase_directory, 'touca.bin');
+        await this._client.save_binary(filepath, [testcase]);
+      }
+      if (errors.length === 0 && options.save_json) {
+        const filepath = path.join(testcase_directory, 'touca.json');
+        await this._client.save_binary(filepath, [testcase]);
+      }
+      if (errors.length === 0 && !offline) {
+        await this._client.post();
+      }
+
+      console.info(
+        util.format(
+          ' (%d of %d) %s (%s, %d ms)',
+          index + 1,
+          options.testcases.length
+        ),
+        testcase,
+        errors.length === 0 ? 'pass' : 'fail',
+        timer.count(testcase)
+      );
+
+      this._client.forget_testcase(testcase);
+    }
+
+    timer.toc('__workflow__');
+    console.info(
+      util.format(
+        '\nProcessed %d of %d test cases.\nTest completed in %d ms\n',
+        stats.count('pass'),
+        options.testcases.length,
+        timer.count('__workflow__')
+      )
+    );
+
+    if (!offline) {
+      await this._client.seal();
+    }
+  }
+
+  private async _initialize(options: RunnerOptions): Promise<void> {
+    // Let the lower-level library consolidate the provided config options
+    // including applying environment variables and processing long-format
+    // api_url.
+    update_options(options, options);
+
+    // Check that team, suite and version are provided.
+    const missing = ['team', 'suite', 'version'].filter((v) => !(v in options));
+    if (missing.length !== 0) {
+      throw new ToucaError(ToucaErrorCode.MissingSlugs, [
+        missing.map((v) => `"${v}"`).join(', ')
+      ]);
+    }
+
+    // Create directory to write logs and test results into
+    const output_dir = path.join(
+      options.output_directory,
+      options.suite as string,
+      options.version as string
+    );
+    if (!fs.existsSync(output_dir)) {
+      fs.mkdirSync(output_dir, { recursive: true });
+    }
+
+    // Configure the lower-level Touca library
+    if (!(await this._client.configure(options))) {
+      throw new Error(this._client.configuration_error());
+    }
+
+    // Update list of test cases
+    await this._update_testcase_list(options);
+  }
+
+  /**
+   * Use provided config options to find the final list of test cases to use
+   * for running the workflows. The following implementation assumes options
+   * `--testcases` and `--testcase-file` are mutually exclusive.
+   */
+  private async _update_testcase_list(options: RunnerOptions): Promise<void> {
+    if (options.testcases) {
+      return;
+    }
+    if (options.testcase_file) {
+      const content = fs.readFileSync(options.testcase_file, {
+        encoding: 'utf-8'
+      });
+      options.testcases = content
+        .split('\n')
+        .filter((v) => v.length !== 0 && v.startsWith('#'));
+      return;
+    }
+    if (
+      options.offline ||
+      ['api_key', 'api_url'].some((v) => !(v in options))
+    ) {
+      throw new ToucaError(ToucaErrorCode.NoCaseMissingRemote);
+    }
+    options.testcases = await this._client.get_testcases();
+    if (options.testcases.length === 0) {
+      throw new ToucaError(ToucaErrorCode.NoCaseEmptyRemote);
+    }
+  }
+
+  /**
+   *
+   */
+  private _skip(options: RunnerOptions, testcase: string): boolean {
     const testcase_directory = path.join(
       options.output_directory,
       options.suite as string,
       options.version as string,
       testcase
     );
-
-    if (options.overwrite && _skip(options, testcase)) {
-      const message = '';
-      console.info(message);
-      stats.inc('skip');
-      continue;
+    if (options.save_binary) {
+      return fs.existsSync(path.join(testcase_directory, 'touca.bin'));
     }
-
-    touca.declare_testcase(testcase);
-    timer.tic(testcase);
-
-    const errors = [];
-    try {
-      for (const workflow_name in workflows) {
-        await workflows[workflow_name](testcase);
-      }
-    } catch (error) {
-      errors.push('message' in error ? error.message : 'unknown error');
+    if (options.save_json) {
+      return fs.existsSync(path.join(testcase_directory, 'touca.json'));
     }
-
-    timer.toc(testcase);
-    stats.inc(errors.length === 0 ? 'pass' : 'fail');
-
-    if (errors.length === 0 && options.save_binary) {
-      const filepath = path.join(testcase_directory, 'touca.bin');
-      await touca.save_binary(filepath, [testcase]);
-    }
-    if (errors.length === 0 && options.save_json) {
-      const filepath = path.join(testcase_directory, 'touca.json');
-      await touca.save_binary(filepath, [testcase]);
-    }
-    if (errors.length === 0 && !offline) {
-      await touca.post();
-    }
-
-    console.info(
-      util.format(
-        ' (%d of %d) %s (%s, %d ms)',
-        index + 1,
-        options.testcases.length
-      ),
-      testcase,
-      errors.length === 0 ? 'pass' : 'fail',
-      timer.count(testcase)
-    );
-
-    touca.forget_testcase(testcase);
-  }
-
-  timer.toc('__workflow__');
-  console.info(
-    util.format(
-      '\nProcessed %d of %d test cases.\nTest completed in %d ms\n',
-      stats.count('pass'),
-      options.testcases.length,
-      timer.count('__workflow__')
-    )
-  );
-
-  if (!offline) {
-    await touca.seal();
-  }
-}
-
-/**
- *
- */
-export async function run(): Promise<void> {
-  try {
-    await _run(process.argv);
-  } catch (error) {
-    console.error(
-      `Touca encountered an error when executing this test:\n${error.message}`
-    );
-    process.exit(1);
+    return false;
   }
 }
