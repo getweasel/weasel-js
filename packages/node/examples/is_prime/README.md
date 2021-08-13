@@ -1,6 +1,4 @@
-# Primality Test
-
-## Introduction
+# Example 1: Primality Test
 
 This simple example attempts to test the following function as our
 code under test using Touca high-level API.
@@ -16,7 +14,6 @@ The efficiency and correctness of this implementation is not important
 since we expect this implementation to change in future versions of
 our software. For now, we will copy the content of file
 [`is_prime.ts`](./is_prime.ts) as our v1.0 implementation.
-
 
 Now let's create a file `is_prime_test.ts` and copy the following code
 snippet into it.
@@ -44,8 +41,8 @@ will be using to test our `is_prime` function. Similarly, it does not
 include the expected return value of our `is_prime` function for different
 inputs. These features make Touca slightly different than the traditional
 unit testing techniques. By decoupling the test cases from our test logic,
-we can now test our code with any number of test cases, without making code
-changes:
+we can now test our code with any number of test cases, without changing
+our test code:
 
 ```bash
 node ./packages/node/dist/examples/is_prime/is_prime_test.js
@@ -55,7 +52,8 @@ node ./packages/node/dist/examples/is_prime/is_prime_test.js
   --testcase 17
 ```
 
-Alternatively, we could have set these parameters as environment variables.
+> Alternatively, we could set `TOUCA_API_KEY` and `TOUCA_API_URL`
+> as environment variables.
 
 The command above will execute our code under test with testcase "17" and
 captures the return value of our `is_prime` function as a Touca test result.
@@ -65,8 +63,8 @@ them with version `v1.0`. Now if someone changes the implementation of our
 as, say, `v2.0`. Once we do so, the server will compare the new test results
 against our test results for `v1.0` and visualizes all differences.
 
-```text
-Touca Regression Test Framework
+```plaintext
+Touca Test Framework
 Suite: is_prime_test
 Revision: v1.0
 
@@ -78,7 +76,7 @@ Test completed in 1 ms
 
 ## General Model
 
-The pattern used in this example can be generalized and used for testing
+The pattern used in this example is generally applicable testing
 real-world workflows of any complexity.
 
 ```ts
@@ -91,11 +89,24 @@ touca.workflow('name_of_suite', (testcase: string) => {
 touca.run();
 ```
 
-In general, the code you insert as your workflow under test can be anything
-as long as it implements the three tasks below:
+The code you insert as your workflow under test generally performs
+the following operations.
 
-1. Map testcase name to its corresponding input.
-2. Call your code under test with that input
-3. Describe the behavior and performance of your code
-   by capturing values of interesting variables and
-   runtime of important functions
+1. Map a given testcase name to its corresponding input.
+
+    > We did this by calling `Number.parseInt(testcase)`.
+
+2. Call your code under test with that input.
+
+    > We did this by calling `is_prime(number)`.
+
+3. Describe the behavior and performance of your code under test.
+
+    > We can do this by capturing values of interesting variables
+    > and runtime of important functions.
+    >
+    > In our example, we captured the return value of our `is_prime`
+    > function via `touca.add_result`. We could also capture runtime
+    > of functions and other performance data but our example here
+    > was too trivial to showcase all possibilities. See our next
+    > example for more details.
