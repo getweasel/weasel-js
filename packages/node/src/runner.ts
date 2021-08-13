@@ -274,7 +274,7 @@ export class Runner {
     try {
       await this._run_workflows(process.argv);
     } catch (error) {
-      console.error(
+      process.stderr.write(
         `Touca encountered an error when executing this test:\n${error.message}`
       );
       process.exit(1);
@@ -290,7 +290,7 @@ export class Runner {
     }
     const options = _parse_cli_options(args);
     await this._initialize(options);
-    console.info(
+    process.stdout.write(
       `\nTouca Regression Test Framework\nSuite: ${options.suite}\nRevision: ${options.version}\n`
     );
 
@@ -309,7 +309,7 @@ export class Runner {
 
       if (options.overwrite && this._skip(options, testcase)) {
         const message = '';
-        console.info(message);
+        process.stdout.write(message);
         stats.inc('skip');
         continue;
       }
@@ -341,22 +341,22 @@ export class Runner {
         await this._client.post();
       }
 
-      console.info(
+      process.stdout.write(
         util.format(
           ' (%d of %d) %s (%s, %d ms)',
           index + 1,
-          options.testcases.length
-        ),
-        testcase,
-        errors.length === 0 ? 'pass' : 'fail',
-        timer.count(testcase)
+          options.testcases.length,
+          testcase,
+          errors.length === 0 ? 'pass' : 'fail',
+          timer.count(testcase)
+        )
       );
 
       this._client.forget_testcase(testcase);
     }
 
     timer.toc('__workflow__');
-    console.info(
+    process.stdout.write(
       util.format(
         '\nProcessed %d of %d test cases.\nTest completed in %d ms\n',
         stats.count('pass'),
@@ -377,7 +377,9 @@ export class Runner {
     update_options(options, options);
 
     // Check that team, suite and version are provided.
-    const missing = ['team', 'suite', 'version'].filter((v) => !(v in options));
+    const missing = (
+      ['team', 'suite', 'version'] as (keyof RunnerOptions)[]
+    ).filter((v) => options[v] === undefined);
     if (missing.length !== 0) {
       throw new ToucaError(ToucaErrorCode.MissingSlugs, [
         missing.map((v) => `"${v}"`).join(', ')
