@@ -282,7 +282,10 @@ export class Runner {
       await this._run_workflows(process.argv);
     } catch (error) {
       process.stderr.write(
-        `Touca encountered an error when executing this test:\n${error.message}\n`
+        util.format(
+          'Touca encountered an error when executing this test:\n%s\n',
+          error.message
+        )
       );
       process.exit(1);
     }
