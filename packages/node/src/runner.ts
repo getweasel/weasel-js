@@ -45,7 +45,7 @@ interface RunnerOptions extends NodeOptions {
   testcases: string[];
   testcase_file: string;
   output_directory: string;
-  log_level: 'debug' | 'info' | 'warn';
+  // log_level: 'debug' | 'info' | 'warn';
 }
 
 /**
@@ -222,12 +222,12 @@ function _parse_cli_options(args: string[]): RunnerOptions {
         desc: 'Path to a local directory to store result files',
         default: './results'
       },
-      'log-level': {
-        type: 'string',
-        desc: 'Level of detail with which events are logged',
-        choices: ['debug', 'info', 'warn'],
-        default: 'info'
-      },
+      // 'log-level': {
+      //   type: 'string',
+      //   desc: 'Level of detail with which events are logged',
+      //   choices: ['debug', 'info', 'warn'],
+      //   default: 'info'
+      // },
       offline: {
         type: 'string',
         desc: 'Disables all communications with the Touca server',
@@ -246,7 +246,7 @@ function _parse_cli_options(args: string[]): RunnerOptions {
     save_json: argv['save-as-json'],
     save_binary: argv['save-as-binary'],
     output_directory: argv['output-directory'],
-    log_level: argv['log-level'] as 'debug' | 'info' | 'warn',
+    // log_level: argv['log-level'] as 'debug' | 'info' | 'warn',
     overwrite: argv['overwrite'],
     testcases: (argv['testcase'] || []).map(String),
     testcase_file: argv['testcase-file'] as string
