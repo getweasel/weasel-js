@@ -1,11 +1,9 @@
 # Examples using Touca SDK for Node.js
 
-The examples in this directory serve to introduce high-level and low-level
-APIs of the Touca SDK for Node.js package.
+The examples here introduce high-level and low-level APIs of our
+`@touca/node` package.
 
-* [`is_prime`](./is_prime)
+1. [Primality Test](./is_prime)
 
-  This simple example introduces the high-level API of the Node.js SDK.
-  While the code is too trivial to show all the power and features of the SDK,
-  it captures the fundamental design ideas and is a good starting point when
-  writing your own Touca tests.
+    This example introduces the high-level API of the Node.js SDK and
+    is a good starting point when writing your own Touca tests.
