@@ -33,6 +33,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 import yargs from 'yargs';
+
 import { NodeClient } from './client';
 import { NodeOptions, update_options } from './options';
 import { VERSION } from './version';

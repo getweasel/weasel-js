@@ -1,7 +1,8 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
-import { NodeClient } from '../src/client';
 import * as process from 'process';
+
+import { NodeClient } from '../src/client';
 
 describe('basic operations', () => {
   beforeAll(() => {

@@ -3,12 +3,13 @@
 import { Builder } from 'flatbuffers';
 import { mkdirSync, writeFileSync } from 'fs';
 import { dirname } from 'path';
+
 import { Case } from './case';
 import { NodeOptions, update_options } from './options';
-import { Transport } from './transport';
-import * as schema from './schema';
-import { TypeHandler } from './types';
 import { Runner } from './runner';
+import * as schema from './schema';
+import { Transport } from './transport';
+import { TypeHandler } from './types';
 
 /**
  *
