@@ -7,3 +7,6 @@ The examples here introduce high-level and low-level APIs of our
 
     This example introduces the high-level API of the Node.js SDK and
     is a good starting point when writing your own Touca tests.
+
+2. [Students Test](./students)
+
