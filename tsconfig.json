@@ -8,7 +8,9 @@
     "lib": ["es6", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
-    "paths": {},
+    "paths": {
+      "@touca/node/*": ["packages/node/src/*"]
+    },
     "sourceMap": true,
     "strict": true,
     "target": "es5",

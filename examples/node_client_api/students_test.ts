@@ -1,6 +1,6 @@
 // Copyright 2021 Touca, Inc. Subject to Apache-2.0 License.
 
-import { touca } from '../../packages/node/src';
+import { touca } from '@touca/node';
 import { parse_profile } from './students';
 
 (async () => {
