@@ -74,7 +74,7 @@ them with version `v1.0`. Now if someone changes the implementation of our
 as, say, `v2.0`. Once we do so, the server will compare the new test results
 against our test results for `v1.0` and visualizes all differences.
 
-```plaintext
+```text
 Touca Test Framework
 Suite: is_prime_test
 Revision: v1.0

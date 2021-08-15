@@ -16,7 +16,6 @@
     "examples/02_node_basic_api",
     "examples/03_node_client_api"
   ],
-  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^26.0.24",
     "@typescript-eslint/eslint-plugin": "^4.19.0",

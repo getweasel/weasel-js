@@ -72,7 +72,7 @@ Where `TOUCA_API_KEY` and `TOUCA_API_URL` can be obtained from the
 Touca server at [app.touca.io](https://app.touca.io).
 This command produces the following output:
 
-```plaintext
+```text
 Touca Test Framework
 Suite: is_prime_test
 Revision: v1.0
