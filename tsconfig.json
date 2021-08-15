@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": "packages",
+    "baseUrl": ".",
     "alwaysStrict": true,
     "declaration": true,
     "declarationMap": true,
@@ -8,9 +8,7 @@
     "lib": ["es6", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
-    "paths": {
-      "@touca/*": ["*/src"]
-    },
+    "paths": {},
     "sourceMap": true,
     "strict": true,
     "target": "es5",
