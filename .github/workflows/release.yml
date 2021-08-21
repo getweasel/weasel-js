@@ -3,9 +3,6 @@
 name: touca-js-release
 
 on:
-  push:
-    branches:
-      - feature/t-244
   release:
     types:
       - created
@@ -20,6 +17,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 14
+          registry-url: 'https://registry.npmjs.org'
       - run: yarn install
       - run: yarn build:prod
       - name: build package distributable
@@ -28,5 +26,10 @@ jobs:
           cp LICENSE packages/node/LICENSE
           cp CHANGELOG.md packages/node/CHANGELOG.md
           cp README.md packages/node/README.md
+          sed -i 's/\("main":\).*/\1 "dist\/index.js",/g' packages/node/package.json
+          sed -i 's/\("types":\).*/\1 "dist\/index.d.ts",/g' packages/node/package.json
           yarn lerna version --no-git-tag-version --no-push --yes patch
-          cd packages/node && npm pack
+      - run: |
+          cd packages/node && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
